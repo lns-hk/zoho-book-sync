@@ -189,3 +189,33 @@ Same procedure and toolchain as above: robocopy into `C:\AI\Project\zoho-sync-bu
 
 Output: `dist-windows\ZohoSync-windows.zip` is **47,870,228 bytes (≈ 45.7 MB)** and the unzipped folder is ≈ 115 MB. This replaces the Rebuild 5 zip (SHA-256 `c6fff4fa…`).
 SHA-256: `fab82e9c0e7a52d79de86fa233fc0fd57c83753f79645861019df5cf67f56941`
+
+## 0.2.0 build — 2026-11-08 (renamed to Zoho Book Sync, 4-language UI, from Mac)
+Changes picked up:
+- The app/exe name is now **ZohoBookSync**. `build.py` outputs `dist-windows\ZohoBookSync\ZohoBookSync.exe` and `dist-windows\ZohoBookSync-windows.zip`. The config dir is `%LOCALAPPDATA%\ZohoBookSync`, and the autostart Run value is `ZohoBookSync`.
+- New `zoho_sync/i18n.py` covers English / 简体中文 / 正體中文 / 日本語. By default the UI follows the OS language (`QLocale.system().uiLanguages()`). A 語言/Language combo on the Status tab switches language live by rebuilding the UI. `gui.apply_language` also loads Qt's `qtbase_*.qm` so standard dialog buttons are translated.
+- Engine outcomes are now codes, which the GUI translates.
+
+Procedure: I deleted everything in `C:\AI\Project\zoho-sync-build` except `.venv`, so old files such as `ZohoSync.spec`, `dist\` and the root-level `WINDOWS_BUILD.md` can't linger. I then robocopied the source in (excluding `dist`, `dist-mac`, `dist-windows`, `build`, `__pycache__`, `.venv`, `.git`) and reused the venv. Toolchain is unchanged: Python 3.12.10, PySide6 6.12.0, PyInstaller 6.22.3, platformdirs 4.14.5. `pip install -r requirements-dev.txt` installed nothing new, and `pip check` is clean.
+
+- `python -m pytest tests` → **235 passed, 1 skipped** (0.22 s). The skipped test is the POSIX permission test, as before.
+- `python build.py` → built with no errors into `dist-windows\`. **The Qt translations are bundled:** `_internal\PySide6\translations\` holds 99 `.qm` files, including `qtbase_en`, `qtbase_zh_CN`, `qtbase_zh_TW` and `qtbase_ja`. PyInstaller's PySide6 hook collects them, so `build.py` needed no change.
+- **Packaged `ZohoBookSync.exe`**, driven with Windows UI Automation and `PrintWindow` screenshots (OS UI language is 繁體中文 (香港)):
+  1. **It starts.** The window title is **`Zoho Book Sync 0.2.0`** and the size is 860×620. On first run it follows the system language, so it opens in 正體中文, and the combo's first entry reads 跟隨系統（正體中文）.
+  2. **Language switching:** I selected English → 简体中文 → 正體中文 → 日本語 in the Status-tab combo and screenshotted all 5 tabs in each language (20 screenshots). Every switch rebuilt the UI live: tab names went Status/Connect Zoho/Sync Settings/Customer Folders/Auto Sync → 状态/连接 Zoho/同步设置/客户文件夹/自动同步 → 狀態/連接 Zoho/同步設定/客戶資料夾/自動同步 → ステータス/Zoho 接続/同期設定/顧客フォルダ/自動同期. The window title stayed `Zoho Book Sync 0.2.0`. Simplified, Traditional and Japanese text (including kana) render with Windows' CJK fonts, and nothing is clipped at the default 860 px width. That covers the tabs, group boxes, radio/check boxes, form labels, the wrapped help texts, the buttons, the Zoho API group, and the bottom status-bar counter (e.g. `Zoho 不明 プラン ｜ 本日の API 残り — ｜ このコンピュータ本日 0 回`, whose last character sits just left of the size grip but is fully visible). In English the counter ends with the bare number (`This computer today: 0`); that is the English wording, not clipping.
+  3. **Qt's own strings are translated.** In 日本語 I clicked Zoho 接続 → 接続を解除. The standard `QMessageBox.question` titled 接続を解除 asked 接続を解除しますか？同期済みのファイルは削除されません。 with buttons **はい(Y) / いいえ(N)**, which shows `qtbase_ja.qm` is bundled and found via `QLibraryInfo` in the frozen app. I answered いいえ, so nothing was disconnected or written.
+  4. **The tray menu is translated.** In 日本語 the menu shows Zoho Book Sync を開く / 今すぐ新規を同期 / フォルダを開く / 自動同期を一時停止 / 終了, and the tooltip is `Zoho Book Sync — 前回の同期 未実行`. **Clicking 終了 quits the app** (no ZohoBookSync process left).
+  5. **`%LOCALAPPDATA%\ZohoBookSync` is used.** It created `Logs\zoho_book_sync.log`, and the language choice was saved to `%LOCALAPPDATA%\ZohoBookSync\settings.json`. I deleted that test `settings.json` afterwards, so the next first run follows the OS language again. Nothing new was written to the old `%LOCALAPPDATA%\ZohoSync`. No `ZohoBookSync` (or `ZohoSync`) Run value exists.
+- I did not connect to Zoho or enter any credentials. **No source changes were needed.**
+
+Testing tips:
+- Qt's `QComboBox` popup ignores UIA `SelectionItemPattern.Select()`. The item looks selected, but `currentIndexChanged` never fires. To switch language, focus the combo, `Expand()` it, then send `{HOME}`, `{DOWN}`×n and `{ENTER}`.
+- Win11's overflow tray button name is `<InitialTooltip> <current tooltip>`. Windows caches the tooltip from the first launch, so after a language switch it reads `Zoho Book Sync — 上次同步 尚未同步 Zoho Book Sync — 前回の同期 未実行`. The tray `QMenu` is a top-level window of class `QMenu`; poll for it right after the right-click.
+- At 9 pt, 纟 and 糸 look the same in screenshots (结果 vs 結果), so a zh-Hans label like `组织` can look Traditional. The strings are correct Simplified codepoints (U+7EC4 U+7EC7).
+
+Notes:
+- **No migration from the old name.** 0.2.0 does not read `%LOCALAPPDATA%\ZohoSync`. A user upgrading from 0.1.0 starts unconfigured and has to reconnect to Zoho and redo their settings, or copy `settings.json` / `secrets.json` / `state.json` / `quota.json` across by hand. An old `ZohoSync` Run value (if autostart was on) is not removed and would still launch the old exe. The old and new apps use different single-instance keys, so both can run side by side (seen during this test: a 0.1.0 `ZohoSync.exe` from Downloads kept running alongside). This isn't Windows-specific, so I left the code as is.
+- Unsigned as before (SmartScreen: 其他資訊 → 仍要執行).
+
+Output: `dist-windows\ZohoBookSync-windows.zip` is **50,390,922 bytes (≈ 48.1 MB)**, 230 entries, and the unzipped `ZohoBookSync\` folder is ≈ 121 MB. It replaces `ZohoSync-windows.zip` (Rebuild 6, SHA-256 `fab82e9c…`). I deleted that zip and the old `dist-windows\ZohoSync\` folder.
+SHA-256: `98696b1367786a272c8a24a33d3e21cc602f32067595f47d897c564ad27505df`
