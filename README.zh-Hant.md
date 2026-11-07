@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README.zh-Hans.md) | **正體中文** | [日本語](README.ja.md)
 
-Zoho Book Sync 是一款適用於 macOS 及 Windows 的桌面應用程式，可將 Zoho Books 的報價單、發票等文件匯出為 PDF，並依客戶分類存放於 OneDrive 或任何本機資料夾。
+Zoho Book Sync 是一款適用於 macOS 及 Windows 的桌面應用程式，可將 Zoho Books 的報價單、發票等文件匯出為 PDF，並依客戶分類存放於電腦上你所選擇的資料夾。
 
 版本：0.2.0
 
@@ -16,10 +16,9 @@ Zoho Books 免費方案不提供 Workflow 及 Custom Function，無法在 Zoho �
 
 1. 透過 Zoho Books API 讀取新開立或已修改的文件。
 2. 將文件下載為 PDF。
-3. 存放至 OneDrive 等雲端同步資料夾內對應的客戶資料夾。
-4. 由雲端用戶端自動上傳。
+3. 存放至你所選擇的本機資料夾內對應的客戶資料夾。
 
-只需將各客戶資料夾分享予合作公司一次，此後新文件便會自動送達。
+任何資料夾均可使用。如希望合作公司自動收到檔案，可選擇已由 OneDrive、Google Drive、Dropbox 或 NAS 等同步服務同步的資料夾，並將各客戶資料夾分享予合作公司一次。
 
 ## 功能
 
@@ -86,7 +85,7 @@ Zoho Books 免費方案不提供 Workflow 及 Custom Function，無法在 Zoho �
 
 - **同步的文件類型：** 勾選要同步的類型。
 - **不同步以下狀態：** 例如草稿、作廢。
-- **儲存位置：** 預設為 OneDrive 內的 `Zoho Books` 資料夾，可按「選擇…」更改。
+- **儲存位置：** 可為電腦上任何資料夾。如已安裝 OneDrive，預設為 OneDrive 內的 `Zoho Books` 資料夾，否則為「文件」內的 `Zoho Books`。可按「選擇…」更改。
 - **資料夾及檔名：** 以範本設定，例如 `{partner}/{type}/{number}.pdf`。可用欄位：`{partner}` `{company}` `{customer}` `{type}` `{number}` `{year}` `{month}` `{date}` `{status}`。
 
 文件類型資料夾名稱（`Quotes`、`Invoices` 等）不論介面語言均維持英文，因此切換語言不會移動任何檔案。

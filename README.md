@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-Hans.md) | [正體中文](README.zh-Hant.md) | [日本語](README.ja.md)
 
-Zoho Book Sync is a desktop app for macOS and Windows that exports Zoho Books documents (quotes, invoices and others) as PDF files. It files them into per-customer folders inside OneDrive or any other local folder.
+Zoho Book Sync is a desktop app for macOS and Windows that exports Zoho Books documents (quotes, invoices and others) as PDF files. It saves them into per-customer folders in a folder of your choice on your computer.
 
 Version: 0.2.0
 
@@ -16,10 +16,9 @@ The Zoho Books free plan has no workflow rules or custom functions, so this cann
 
 1. It reads new and changed documents through the Zoho Books API.
 2. It downloads each document as a PDF.
-3. It saves the PDF into the right customer folder inside a cloud-synced folder such as OneDrive.
-4. The cloud client uploads the file.
+3. It saves the PDF into the right customer folder in a local folder of your choice.
 
-Share each customer folder with the partner once, and new documents reach them automatically from then on.
+Any folder works. If you want partners to receive the files automatically, pick a folder that a sync service such as OneDrive, Google Drive, Dropbox or a NAS already syncs, and share each customer folder with the partner once.
 
 ## Features
 
@@ -86,7 +85,7 @@ After connecting:
 
 - **Documents to sync:** tick the types to sync.
 - **Don't sync these statuses:** for example drafts or void documents.
-- **Storage location:** by default a `Zoho Books` folder inside OneDrive. Click **Choose…** to change it.
+- **Storage location:** any folder on your computer. By default the app uses a `Zoho Books` folder in OneDrive if OneDrive is installed, otherwise `Documents/Zoho Books`. Click **Choose…** to change it.
 - **Folder and file name:** a template such as `{partner}/{type}/{number}.pdf`. Available fields: `{partner}` `{company}` `{customer}` `{type}` `{number}` `{year}` `{month}` `{date}` `{status}`.
 
 Folder names for document types (`Quotes`, `Invoices`, …) stay in English whatever the interface language, so changing the language never moves your files.
