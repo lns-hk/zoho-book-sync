@@ -173,3 +173,9 @@ zoho_sync/gui.py        PySide6 界面（五个页签、系统托盘、自选同
 zoho_sync/autostart.py  开机启动（macOS LaunchAgent / Windows Run key）
 tests/                  pytest
 ```
+
+## 许可证
+
+Zoho Book Sync 以 [MIT 许可证](LICENSE)发布：只要保留版权和许可声明，即可使用、复制、修改和分发本程序，包括用于商业用途。
+
+打包版本包含采用 LGPL-3.0 许可的 Qt for Python（PySide6）和 Qt。这些及其他第三方组件的许可信息见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。

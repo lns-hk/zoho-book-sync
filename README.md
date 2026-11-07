@@ -173,3 +173,9 @@ zoho_sync/gui.py        PySide6 interface (five tabs, tray icon, selection and c
 zoho_sync/autostart.py  Start at login (macOS LaunchAgent / Windows Run key)
 tests/                  pytest
 ```
+
+## License
+
+Zoho Book Sync is released under the [MIT License](LICENSE): you may use, copy, modify and distribute it, including commercially, as long as you keep the copyright and license notice.
+
+The packaged releases bundle Qt for Python (PySide6) and Qt, which are licensed under the LGPL-3.0. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for these and other third-party licenses.

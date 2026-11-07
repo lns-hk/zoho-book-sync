@@ -2,6 +2,7 @@
 macOS  -> dist-mac/ZohoBookSync.app  (+ dist-mac/ZohoBookSync-mac.zip)
 Windows-> dist-windows/ZohoBookSync/ZohoBookSync.exe (+ dist-windows/ZohoBookSync-windows.zip)
 """
+import os
 import shutil
 import subprocess
 import sys
@@ -19,6 +20,8 @@ args = [
     "--workpath", str(Path(tempfile.gettempdir()) / "zohobooksync-build"),  # keep scratch out of synced folders
     "--distpath", "dist-mac" if sys.platform == "darwin" else "dist-windows",
     "--exclude-module", "tkinter",
+    # licenses travel with the app (LGPL requires the Qt license text to accompany it)
+    *[x for f in ("LICENSE", "THIRD_PARTY_NOTICES.md", "licenses") for x in ("--add-data", f"{f}{os.pathsep}{'licenses' if f == 'licenses' else '.'}")],
     # trim unused Qt modules to keep the bundle small
     *[a for m in ("QtWebEngineCore", "QtWebEngineWidgets", "QtQml", "QtQuick", "Qt3DCore", "QtMultimedia",
                   "QtPdf", "QtCharts", "QtDataVisualization", "QtSql", "QtTest")
