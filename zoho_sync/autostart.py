@@ -5,8 +5,8 @@ import plistlib
 import sys
 from pathlib import Path
 
-LABEL = "hk.sunforest.zohosync"
-WIN_VALUE = "ZohoSync"
+LABEL = "hk.lns.zohobooksync"
+WIN_VALUE = "ZohoBookSync"
 
 
 def _command() -> list[str]:

@@ -58,7 +58,7 @@ def test_since_date_and_changed(settings):
     state = {"docs": {"invoices:2": {"modified": "t1"}}}
     rows = [inv(1, date="2026-10-01"), inv(2, mod="t2"), inv(3)]
     jobs = engine.plan(docs(rows), settings, state)
-    assert {(j.doc.number, j.reason) for j in jobs} == {("INV2", "已更新"), ("INV3", "新單")}
+    assert {(j.doc.number, j.reason) for j in jobs} == {("INV2", "updated"), ("INV3", "new")}
     assert len(engine.plan(docs(rows), settings, state, mode="all")) == 3
 
 
@@ -70,9 +70,9 @@ def test_template_and_sanitizing(settings):
 
 
 @pytest.mark.parametrize("mode,expected_files,outcome", [
-    ("version", {"INV1.pdf", "INV1_v2.pdf"}, "新版本"),
-    ("overwrite", {"INV1.pdf"}, "已覆蓋"),
-    ("skip", {"INV1.pdf"}, "已略過"),
+    ("version", {"INV1.pdf", "INV1_v2.pdf"}, engine.NEW_VERSION),
+    ("overwrite", {"INV1.pdf"}, engine.OVERWRITTEN),
+    ("skip", {"INV1.pdf"}, engine.SKIPPED),
 ])
 def test_conflict_modes(settings, mode, expected_files, outcome):
     settings.conflict = mode
@@ -95,7 +95,7 @@ def test_identical_pdf_not_rewritten(settings):
     client = FakeClient({})
     engine.run(client, engine.plan(docs([inv(1)]), settings, state), settings, state)
     res = engine.run(client, engine.plan(docs([inv(1, mod="t2")]), settings, state), settings, state)
-    assert res[0][1] == "冇變動"
+    assert res[0][1] == engine.UNCHANGED
     assert len(list(Path(settings.output_root, "ABC Ltd", "Invoices").iterdir())) == 1
 
 

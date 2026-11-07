@@ -9,7 +9,7 @@ from pathlib import Path
 
 from platformdirs import user_config_dir, user_data_dir, user_log_dir
 
-APP_NAME = "ZohoSync"
+APP_NAME = "ZohoBookSync"
 CONFIG_DIR = Path(user_config_dir(APP_NAME, appauthor=False))
 DATA_DIR = Path(user_data_dir(APP_NAME, appauthor=False))
 LOG_DIR = Path(user_log_dir(APP_NAME, appauthor=False))
@@ -60,6 +60,8 @@ class Settings:
     interval_min: int = 10
     start_at_login: bool = False
     notify: bool = True
+    # interface
+    language: str = ""              # "" = follow the system; else en | zh-Hans | zh-Hant | ja
 
     @property
     def connected(self) -> bool:

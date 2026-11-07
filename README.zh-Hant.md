@@ -1,10 +1,12 @@
-# Zoho 同步（ZohoSync）
+# Zoho Book Sync
 
-[English](README.md) | **正體中文**
+[English](README.md) | [简体中文](README.zh-Hans.md) | **正體中文** | [日本語](README.ja.md)
 
-ZohoSync 是一款適用於 macOS 及 Windows 的桌面應用程式，可將 Zoho Books 的報價單、發票等文件匯出為 PDF，並依客戶分類存放於 OneDrive 或任何本機資料夾。
+Zoho Book Sync 是一款適用於 macOS 及 Windows 的桌面應用程式，可將 Zoho Books 的報價單、發票等文件匯出為 PDF，並依客戶分類存放於 OneDrive 或任何本機資料夾。
 
-版本：0.1.0
+版本：0.2.0
+
+> Zoho Book Sync 為獨立項目，並非由 Zoho Corporation 開發、認可或提供支援。Zoho 及 Zoho Books 為 Zoho Corporation 的商標。
 
 ## 背景
 
@@ -21,9 +23,10 @@ Zoho Books 免費方案不提供 Workflow 及 Custom Function，無法在 Zoho �
 
 ## 功能
 
+- **介面語言：** 英文、簡體中文、正體中文、日文。預設跟隨系統語言，亦可隨時在「狀態」分頁的「語言」選單切換。
 - **文件類型：** 報價單、發票、退款單、銷售訂單、收款收據，可於設定中自行選擇。
 - **三種同步方式：**
-  - 同步新單：只同步新開立及已修改的文件，供日常使用。
+  - 同步新文件：只同步新開立及已修改的文件，供日常使用。
   - 全部同步：同步全部歷史文件。
   - 自選同步：從經篩選的清單中勾選文件。
 - **客戶資料夾：**
@@ -33,7 +36,7 @@ Zoho Books 免費方案不提供 Workflow 及 Custom Function，無法在 Zoho �
 - **文件修改後：** 預設另存新版本（`_v2.pdf`），不會覆蓋經人手修改的檔案；亦可改為覆蓋或略過。
 - **自動同步：**
   - 可設定檢查頻率。
-  - 可於開機時自動啟動，並在選單列或系統匣運行。
+  - 可於開機時自動啟動，並在選單列或系統匣執行。
   - 有新檔案或發生錯誤時發出通知。
 - **API 用量：**
   - 自動偵測 Zoho 方案。
@@ -49,8 +52,8 @@ Zoho Books 免費方案不提供 Workflow 及 Custom Function，無法在 Zoho �
 
 | 系統 | 檔案 | 首次開啟 |
 |---|---|---|
-| macOS（Apple Silicon） | `ZohoSync-mac.zip` | 解壓縮後將 `ZohoSync.app` 移至「應用程式」。由於未經 Apple 簽署，首次開啟須按**右鍵 → 打開**。 |
-| Windows 10/11 | `ZohoSync-windows.zip` | 解壓縮後執行 `ZohoSync\ZohoSync.exe`。如出現 SmartScreen 警告，請按**其他資訊 → 仍要執行**。 |
+| macOS（Apple Silicon） | `ZohoBookSync-mac.zip` | 解壓縮後將 `ZohoBookSync.app` 移至「應用程式」。由於未經 Apple 簽署，首次開啟須按**右鍵 → 打開**。 |
+| Windows 10/11 | `ZohoBookSync-windows.zip` | 解壓縮後執行 `ZohoBookSync\ZohoBookSync.exe`。如出現 SmartScreen 警告，請按**其他資訊 → 仍要執行**。 |
 
 ## 使用方法
 
@@ -79,30 +82,33 @@ Zoho Books 免費方案不提供 Workflow 及 Custom Function，無法在 Zoho �
 - 選擇 Zoho Books 機構。
 - 選擇只同步今日起的新文件，或稍後再決定。
 
-### 2. 同步設定（「同步設定」分頁）
+### 2.「同步設定」分頁
 
-- **同步文件類型：** 勾選要同步的類型。
-- **不同步的狀態：** 例如草稿、作廢。
+- **同步的文件類型：** 勾選要同步的類型。
+- **不同步以下狀態：** 例如草稿、作廢。
 - **儲存位置：** 預設為 OneDrive 內的 `Zoho Books` 資料夾，可按「選擇…」更改。
 - **資料夾及檔名：** 以範本設定，例如 `{partner}/{type}/{number}.pdf`。可用欄位：`{partner}` `{company}` `{customer}` `{type}` `{number}` `{year}` `{month}` `{date}` `{status}`。
 
-### 3. 客戶資料夾（「客戶資料夾」分頁）
+文件類型資料夾名稱（`Quotes`、`Invoices` 等）不論介面語言均維持英文，因此切換語言不會移動任何檔案。
+
+### 3.「客戶資料夾」分頁
 
 1. 按「新增客戶」，並修改資料夾名稱。
-2. 按「由 Zoho 揀公司…」，勾選屬於此客戶的公司。
+2. 按「從 Zoho 選擇公司…」，勾選屬於此客戶的公司。
 
-未列出的公司會以其公司名稱建立資料夾。如只需同步已列出的公司，請勾選「只同步下面列出嘅公司」。
+未列出的公司會以其公司名稱建立資料夾。如只需同步已列出的公司，請勾選「只同步下方列出的公司」。
 
-### 4. 同步（「狀態」分頁）
+### 4.「狀態」分頁
 
-- **同步新單：** 同步新開立及已修改的文件，供日常使用。
+- **同步新文件：** 同步新開立及已修改的文件，供日常使用。
 - **全部同步…：** 同步全部歷史文件。
 - **自選同步…：** 選擇日期範圍後勾選文件。
 - **最近紀錄：** 按兩下可開啟檔案。
+- **語言：** 切換介面語言。
 
-### 5. 自動同步（「自動同步」分頁）
+### 5.「自動同步」分頁
 
-開啟自動同步並設定檢查頻率，如有需要可開啟「開機自動啟動」。關閉視窗後，程式會繼續在選單列或系統匣運行。
+開啟自動同步並設定檢查頻率，如有需要可開啟「開機時自動啟動」。關閉視窗後，程式會繼續於選單列或系統匣執行。
 
 ### API 使用上限
 
@@ -121,41 +127,50 @@ Zoho Books 的每日 API 上限由**整個 Zoho 機構共用**，包括同事的
 
 | 用途 | macOS | Windows |
 |---|---|---|
-| 設定 | `~/Library/Application Support/ZohoSync/settings.json` | `%LOCALAPPDATA%\ZohoSync\settings.json` |
-| 權杖 | `~/Library/Application Support/ZohoSync/secrets.json` | `%LOCALAPPDATA%\ZohoSync\secrets.json` |
-| 同步紀錄、API 用量、公司暫存 | `~/Library/Application Support/ZohoSync/` | `%LOCALAPPDATA%\ZohoSync\` |
-| 記錄檔 | `~/Library/Logs/ZohoSync/zoho_sync.log` | `%LOCALAPPDATA%\ZohoSync\Logs\zoho_sync.log` |
+| 設定 | `~/Library/Application Support/ZohoBookSync/settings.json` | `%LOCALAPPDATA%\ZohoBookSync\settings.json` |
+| 權杖 | `~/Library/Application Support/ZohoBookSync/secrets.json` | `%LOCALAPPDATA%\ZohoBookSync\secrets.json` |
+| 同步紀錄、API 用量、公司暫存 | `~/Library/Application Support/ZohoBookSync/` | `%LOCALAPPDATA%\ZohoBookSync\` |
+| 記錄檔 | `~/Library/Logs/ZohoBookSync/zoho_book_sync.log` | `%LOCALAPPDATA%\ZohoBookSync\Logs\zoho_book_sync.log` |
 
 如需清除登入資料，可在「連接 Zoho」分頁按「中斷連接」，或直接刪除 `secrets.json`。
+
+### 由 0.1.0（ZohoSync）升級
+
+0.2.0 由 ZohoSync 更名而來，資料改存於新的 `ZohoBookSync` 資料夾，因此會以全新狀態啟動：請重新連接 Zoho 並設定客戶資料夾，舊設定不會轉移。如曾於 0.1.0 開啟開機自動啟動，請先在舊版關閉（或刪除舊版應用程式），之後即可刪除舊的 `ZohoSync` 資料夾。
 
 ## 開發
 
 須使用 Python 3.11 或以上版本。
 
 ```bash
-python -m venv ~/.venvs/zoho-sync        # 虛擬環境請勿放在雲端同步資料夾內
-~/.venvs/zoho-sync/bin/pip install -r requirements-dev.txt
-~/.venvs/zoho-sync/bin/python -m pytest tests
-~/.venvs/zoho-sync/bin/python app.py
+python -m venv ~/.venvs/zoho-book-sync        # 虛擬環境請勿放在雲端同步資料夾內
+~/.venvs/zoho-book-sync/bin/pip install -r requirements-dev.txt
+~/.venvs/zoho-book-sync/bin/python -m pytest tests
+~/.venvs/zoho-book-sync/bin/python app.py
 ```
+
+### 翻譯
+
+所有介面文字均存放於 `zoho_sync/i18n.py`：每段文字一個鍵，附英文、簡體中文、正體中文及日文。`tests/test_i18n.py` 會檢查程式中使用的每個鍵均存在、四種語言均已填寫且 `{placeholders}` 一致，以及目錄以外沒有寫死的文字。
 
 ### 打包
 
 在目標系統執行 `python build.py`：
 
-- macOS → `dist-mac/ZohoSync-mac.zip`（ad-hoc 簽署）
-- Windows → `dist-windows/ZohoSync-windows.zip`
+- macOS → `dist-mac/ZohoBookSync-mac.zip`（ad-hoc 簽署）
+- Windows → `dist-windows/ZohoBookSync-windows.zip`
 
 Windows 打包及驗證紀錄見 [`docs/WINDOWS_BUILD.md`](docs/WINDOWS_BUILD.md)。
 
 ### 項目結構
 
 ```
-app.py                  進入點：單一實例、記錄
+app.py                  進入點：單一實例、記錄、語言
+zoho_sync/i18n.py       四種語言的介面文字、語言偵測
 zoho_sync/zoho.py       Zoho OAuth 及 Books API 用戶端（重試、限速、讀取 API 用量）
 zoho_sync/engine.py     同步引擎：列出文件、決定匯出項目、安全寫入 PDF
 zoho_sync/config.py     設定、權杖、同步紀錄、API 用量、公司暫存
-zoho_sync/gui.py        PySide6 介面（五個分頁、系統匣、自選同步及揀選公司視窗）
+zoho_sync/gui.py        PySide6 介面（五個分頁、系統匣、自選同步及選擇公司視窗）
 zoho_sync/autostart.py  開機啟動（macOS LaunchAgent / Windows Run key）
 tests/                  pytest
 ```

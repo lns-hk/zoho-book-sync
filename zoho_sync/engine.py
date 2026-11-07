@@ -17,25 +17,27 @@ class DocType:
     key: str        # API plural, also the settings key
     id_field: str
     number_field: str
-    label: str      # shown in the GUI
-    folder: str     # default {type} folder name
+    folder: str     # {type} folder name (English, so folders don't change with the UI language)
 
 
-DOC_TYPES = [
-    DocType("estimates", "estimate_id", "estimate_number", "報價單 Quote", "Quotes"),
-    DocType("invoices", "invoice_id", "invoice_number", "發票 Invoice", "Invoices"),
-    DocType("creditnotes", "creditnote_id", "creditnote_number", "退款單 Credit Note", "Credit Notes"),
-    DocType("salesorders", "salesorder_id", "salesorder_number", "銷售訂單 Sales Order", "Sales Orders"),
-    DocType("customerpayments", "payment_id", "payment_number", "收款收據 Payment Receipt", "Payment Receipts"),
+DOC_TYPES = [  # GUI label: i18n key "doctype.<key>"
+    DocType("estimates", "estimate_id", "estimate_number", "Quotes"),
+    DocType("invoices", "invoice_id", "invoice_number", "Invoices"),
+    DocType("creditnotes", "creditnote_id", "creditnote_number", "Credit Notes"),
+    DocType("salesorders", "salesorder_id", "salesorder_number", "Sales Orders"),
+    DocType("customerpayments", "payment_id", "payment_number", "Payment Receipts"),
 ]
 TYPES_BY_KEY = {t.key: t for t in DOC_TYPES}
 
-STATUS_LABELS = {
-    "draft": "草稿", "sent": "已發送", "accepted": "已接受", "declined": "已拒絕", "expired": "已過期",
-    "invoiced": "已開發票", "paid": "已付款", "partially_paid": "部分付款", "overdue": "逾期",
-    "void": "作廢", "open": "未結", "closed": "已結", "unpaid": "未付款", "approved": "已批核",
-    "pending_approval": "待批核", "confirmed": "已確認", "fulfilled": "已完成",
-}
+# Known Zoho statuses; GUI label: i18n key "status.<code>" (unknown codes are shown as-is)
+STATUSES = ("draft", "sent", "accepted", "declined", "expired", "invoiced", "paid", "partially_paid",
+            "overdue", "void", "open", "closed", "unpaid", "approved", "pending_approval", "confirmed",
+            "fulfilled")
+
+# write_pdf / run outcomes; GUI label: i18n key "outcome.<code>"
+CREATED, OVERWRITTEN, NEW_VERSION, SKIPPED, UNCHANGED, FAILED = (
+    "created", "overwritten", "new_version", "skipped", "unchanged", "failed")
+WRITTEN = (CREATED, OVERWRITTEN, NEW_VERSION)
 
 
 @dataclass
@@ -59,7 +61,7 @@ class Doc:
 class Job:
     doc: Doc
     dest: Path
-    reason: str     # 新單 | 已更新 | 自選
+    reason: str     # new | updated | selected
 
 
 def normalize(t: DocType, raw: dict) -> Doc:
@@ -115,7 +117,7 @@ def safe(part: str) -> str:
     part = _BAD.sub("_", _INVISIBLE.sub("", part)).strip().rstrip(". ")
     if part.upper() in _WIN_RESERVED:
         part += "_"
-    return part[:120] or "未命名"
+    return part[:120] or "untitled"
 
 
 def norm_company(name: str) -> str:
@@ -169,16 +171,16 @@ def plan(docs: Iterable[Doc], settings: Settings, state: dict, *, mode: str = "n
         rec = seen.get(doc.key)
         if mode == "selected":
             if selected and doc.key in selected:
-                jobs.append(Job(doc, dest_path(doc, settings), "自選"))
+                jobs.append(Job(doc, dest_path(doc, settings), "selected"))
             continue
         if not wanted(doc, settings):
             continue
         if rec is None:
             if mode == "new" and settings.since_date and doc.date and doc.date < settings.since_date:
                 continue
-            jobs.append(Job(doc, dest_path(doc, settings), "新單"))
+            jobs.append(Job(doc, dest_path(doc, settings), "new"))
         elif rec.get("modified") != doc.modified:
-            jobs.append(Job(doc, dest_path(doc, settings), "已更新"))
+            jobs.append(Job(doc, dest_path(doc, settings), "updated"))
     return jobs
 
 
@@ -208,22 +210,22 @@ def _versioned(path: Path) -> Path:
 
 
 def write_pdf(job: Job, data: bytes, settings: Settings, state: dict) -> tuple[str, Path | None]:
-    """Returns (outcome, path). outcome: 已建立 | 已覆蓋 | 新版本 | 已略過 | 冇變動."""
+    """Returns (outcome, path); outcome is one of CREATED/OVERWRITTEN/NEW_VERSION/SKIPPED/UNCHANGED."""
     rec = state.setdefault("docs", {}).get(job.doc.key) or {}
     digest = _sha(data)
     target = job.dest
-    outcome = "已建立"
+    outcome = CREATED
     if rec.get("sha") == digest and rec.get("path") and Path(rec["path"]).exists():
         state["docs"][job.doc.key] = {**rec, "modified": job.doc.modified}
-        return "冇變動", Path(rec["path"])
+        return UNCHANGED, Path(rec["path"])
     if target.exists():
         if settings.conflict == "skip":
             state["docs"][job.doc.key] = {**rec, "modified": job.doc.modified}
-            return "已略過", None
+            return SKIPPED, None
         if settings.conflict == "version":
-            target, outcome = _versioned(target), "新版本"
+            target, outcome = _versioned(target), NEW_VERSION
         else:
-            outcome = "已覆蓋"
+            outcome = OVERWRITTEN
     target.parent.mkdir(parents=True, exist_ok=True)
     tmp = target.with_name(target.name + ".part")
     tmp.write_bytes(data)
@@ -236,7 +238,8 @@ def write_pdf(job: Job, data: bytes, settings: Settings, state: dict) -> tuple[s
 def run(client, jobs: list[Job], settings: Settings, state: dict, *,
         progress: Callable[[int, int, Job, str], None] = lambda *a: None,
         cancelled: Callable[[], bool] = lambda: False,
-        save: Callable[[dict], None] = lambda s: None) -> list[tuple[Job, str, Path | None]]:
+        save: Callable[[dict], None] = lambda s: None) -> list[tuple[Job, str, Path | None, str]]:
+    """Returns (job, outcome, path, error) per job; error is "" unless outcome == FAILED."""
     results = []
     for i, job in enumerate(jobs, 1):
         if cancelled():
@@ -244,9 +247,10 @@ def run(client, jobs: list[Job], settings: Settings, state: dict, *,
         try:
             data = client.pdf(job.doc.type.key, job.doc.id)
             outcome, path = write_pdf(job, data, settings, state)
+            error = ""
         except Exception as e:  # keep going; one bad doc shouldn't stop the batch
-            outcome, path = f"失敗：{e}", None
-        results.append((job, outcome, path))
+            outcome, path, error = FAILED, None, str(e)
+        results.append((job, outcome, path, error))
         progress(i, len(jobs), job, outcome)
         save(state)
     return results

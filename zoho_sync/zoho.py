@@ -11,6 +11,8 @@ import urllib.parse
 import urllib.request
 import webbrowser
 
+from .i18n import tr
+
 DATA_CENTERS = {  # accounts host suffix -> api domain
     "com": "https://www.zohoapis.com",
     "eu": "https://www.zohoapis.eu",
@@ -85,8 +87,8 @@ def exchange_code(dc: str, client_id: str, client_secret: str, code: str,
     if "refresh_token" not in d:
         msg = d.get("error", "unknown error")
         if msg == "invalid_code":
-            msg = "Code 無效或者已過期（Code 只有 10 分鐘有效，而且只可以用一次）"
-        raise ZohoError(f"授權失敗：{msg}")
+            msg = tr("zerr.invalid_code")
+        raise ZohoError(tr("zerr.auth_failed", error=msg))
     if accounts_server:  # browser flow tells us which DC the user lives in
         dc = accounts_server.split("accounts.zoho.", 1)[-1].rstrip("/")
     return {"refresh_token": d["refresh_token"], "access_token": d.get("access_token"),
@@ -114,8 +116,8 @@ def browser_login(dc: str, client_id: str, client_secret: str, timeout: int = 30
             else:
                 result["code"] = q.get("code", [""])[0]
                 result["accounts_server"] = q.get("accounts-server", [None])[0]
-            body = "<h2>已完成，可以關閉呢個視窗，返去 Zoho 同步。</h2>" if "code" in result \
-                else f"<h2>授權失敗：{result.get('error')}</h2>"
+            body = f"<h2>{tr('zerr.callback_ok', app=tr('app.name'))}</h2>" if "code" in result \
+                else f"<h2>{tr('zerr.auth_failed', error=result.get('error'))}</h2>"
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
@@ -134,12 +136,12 @@ def browser_login(dc: str, client_id: str, client_secret: str, timeout: int = 30
             "redirect_uri": REDIRECT_URI, "state": state})
         webbrowser.open(url)
         if not done.wait(timeout):
-            raise ZohoError("等待登入逾時，請再試一次")
+            raise ZohoError(tr("zerr.login_timeout"))
     finally:
         srv.shutdown()
         srv.server_close()
     if "error" in result:
-        raise ZohoError(f"授權失敗：{result['error']}")
+        raise ZohoError(tr("zerr.auth_failed", error=result["error"]))
     return exchange_code(dc, client_id, client_secret, result["code"],
                          redirect_uri=REDIRECT_URI, accounts_server=result.get("accounts_server"))
 
@@ -163,7 +165,7 @@ class BooksClient:
             "refresh_token": self.refresh_token, "client_id": self.client_id,
             "client_secret": self.client_secret, "grant_type": "refresh_token"})
         if "access_token" not in d:
-            raise ZohoError(f"登入已失效，請重新連接 Zoho（{d.get('error', 'unknown')}）")
+            raise ZohoError(tr("zerr.session_expired", error=d.get("error", "unknown")))
         self._token, self._token_exp = d["access_token"], time.time() + int(d.get("expires_in", 3600))
         return self._token
 
@@ -189,15 +191,15 @@ class BooksClient:
                 except Exception:
                     msg = ""
                 if e.code == 429:
-                    raise ZohoError("已超過 Zoho API 使用上限，請稍後再試") from e
+                    raise ZohoError(tr("zerr.rate_limited")) from e
                 if e.code in (401, 403) and "not authorized" in msg.lower():
-                    raise ZohoError("權限不足：請喺「連接 Zoho」重新連接，授權讀取呢類文件") from e
-                raise ZohoError(f"Zoho API 錯誤 {e.code}：{msg}") from e
+                    raise ZohoError(tr("zerr.forbidden")) from e
+                raise ZohoError(tr("zerr.api", code=e.code, message=msg)) from e
             except urllib.error.URLError as e:
                 if attempt < 2:
                     time.sleep(3); continue
-                raise ZohoError(f"連唔到 Zoho：{e.reason}") from e
-        raise ZohoError("Zoho API 重試失敗")
+                raise ZohoError(tr("zerr.unreachable", error=e.reason)) from e
+        raise ZohoError(tr("zerr.retry_failed"))
 
     def _observe(self, headers):
         if self.observer:
@@ -221,5 +223,5 @@ class BooksClient:
     def pdf(self, plural: str, doc_id: str) -> bytes:
         data = self.get(f"{plural}/{doc_id}", raw=True, accept="pdf")
         if not data.startswith(b"%PDF"):
-            raise ZohoError("Zoho 冇回傳 PDF")
+            raise ZohoError(tr("zerr.no_pdf"))
         return data
