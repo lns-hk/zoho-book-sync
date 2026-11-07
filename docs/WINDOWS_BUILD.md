@@ -219,3 +219,18 @@ Notes:
 
 Output: `dist-windows\ZohoBookSync-windows.zip` is **50,390,922 bytes (≈ 48.1 MB)**, 230 entries, and the unzipped `ZohoBookSync\` folder is ≈ 121 MB. It replaces `ZohoSync-windows.zip` (Rebuild 6, SHA-256 `fab82e9c…`). I deleted that zip and the old `dist-windows\ZohoSync\` folder.
 SHA-256: `98696b1367786a272c8a24a33d3e21cc602f32067595f47d897c564ad27505df`
+
+## 0.2.0 rebuild (license files) — 2026-11-08
+Change picked up: `build.py` only. It now bundles `LICENSE`, `THIRD_PARTY_NOTICES.md` and `licenses\` (`LGPL-3.0.txt`, `GPL-3.0.txt`) with `--add-data` (separator `os.pathsep`, so `;` on Windows). No app code changed.
+
+Procedure as in the 0.2.0 build: I cleared `C:\AI\Project\zoho-sync-build` except `.venv`, robocopied the source in (same exclusions) and reused the venv. The toolchain is unchanged.
+
+- `python -m pytest tests` → **235 passed, 1 skipped** (0.20 s).
+- `python build.py` → built with no errors.
+- **The license files are bundled.** `dist-windows\ZohoBookSync\_internal\` holds `LICENSE` (1,073 B), `THIRD_PARTY_NOTICES.md` (1,870 B) and `licenses\LGPL-3.0.txt` (7,653 B) + `licenses\GPL-3.0.txt` (35,150 B). The zip has the same 4 files under `ZohoBookSync/_internal/`, plus the `licenses/` folder entry.
+- **Packaged `ZohoBookSync.exe`** starts and shows the `Zoho Book Sync 0.2.0` window. I opened the tray icon's menu (5 items) with UI Automation and clicked the last item, 結束. **The app quit** (exit code 0, no ZohoBookSync process left).
+- **Zip diff against the previous 0.2.0 zip:** the 5 license entries were added. `libssl-3-x64.dll`, `libcrypto-3-x64.dll` and `api-ms-win-crt-private-l1-1-0.dll` (≈ 6.4 MB) were dropped. PyInstaller had picked those up from a program on `PATH` during the earlier build; they are not in this Python install or in PySide6. They were only used by Qt's optional `qopensslbackend` TLS plugin, which falls back to `qschannelbackend`. The app makes its HTTPS calls through Python `urllib`. That goes through `_ssl.pyd`, which imports `libssl-3.dll` / `libcrypto-3.dll`, and both are still bundled (from Python's `DLLs`). So this does not change behaviour.
+- No Run key was written, and `%LOCALAPPDATA%\ZohoBookSync` still only has `Logs`. I did not connect to Zoho. No source changes were needed.
+
+Output: `dist-windows\ZohoBookSync-windows.zip` is **47,908,101 bytes (≈ 45.7 MB)**, 232 entries, and the unzipped folder is ≈ 115 MB (120,443,779 bytes). This replaces the 0.2.0 zip (SHA-256 `98696b13…`).
+SHA-256: `ba494554e883245bcd43be4709813168f0250f6342504a0dc5f04e1dc22b4658`
